@@ -2,15 +2,15 @@ import pymssql
 import pymysql
 from pymysql.cursors import DictCursor
 from rest_framework.response import Response
+import json
 
 
 class MysqlMixin:
-
     def __init__(self):
         self._HOST = "14.63.164.165"
         self._NAME = "jangboja_wolbae"
-        self._USER = "root"
-        self._PASS = "jangboja^^12"
+        self._USER = "wolbae"
+        self._PASS = "wolbae^^12"
         self.conn: pymysql.Connection = pymysql.connect(host=self._HOST, user=self._USER,
                                                         password=self._PASS,
                                                         db=self._NAME, charset='utf8', cursorclass=DictCursor)
@@ -50,6 +50,7 @@ class DB(MysqlMixin):
                 f",SUM(A.vr_distanceValue) AS sum " \
                 f",SUM(A.vr_deguestPay) AS deguestPay " \
                 f",A.vr_meridiemFlag AS meridiemFlag " \
+                f",A.vr_meridiemType AS meridiemType " \
                 f",A.vr_deliveryDate AS deliveryDate " \
                 f"FROM (SELECT * FROM vehicleAllocateResult WHERE 1=1 " \
                 f"AND vr_deliveryDate='{delivery_date}' " \
@@ -65,7 +66,7 @@ class DB(MysqlMixin):
         results: list = self.cursor.fetchall()
 
         for result in results:
-            result['vehicle_results'] = []
+            result['orders'] = []
 
         query = f"SELECT * FROM vehicleAllocateResult " \
                 f"WHERE vr_deliveryDate = '{delivery_date}' " \
@@ -76,6 +77,52 @@ class DB(MysqlMixin):
         self.cursor.execute(query)
 
         for vehicle_result in self.cursor.fetchall():
-            results[int(vehicle_result['vr_vehicleNo'])]['vehicle_results'].append(vehicle_result)
+            results[int(vehicle_result['vr_vehicleNo'])]['orders'].append(vehicle_result)
 
         return results
+
+    def get_maps(self, delivery_date: str, is_am: str) -> list:
+        query = f"SELECT @num:=@num+1 AS no " \
+                f",vr_deguestName AS deguestName " \
+                f",vr_deguestTel AS deguestTel " \
+                f",vr_deguestPay AS deguestPay " \
+                f",vr_guestId AS guestId " \
+                f",vr_deguestId AS deguestId " \
+                f",vr_Juso AS Juso " \
+                f",vr_guestLon AS guestLon " \
+                f",vr_guestLat AS guestLat " \
+                f",vr_deguestLon AS deguestLon " \
+                f",vr_deguestLat AS deguestLat " \
+                f",vr_vehicleNo AS vehicleNo " \
+                f",vr_vehicleNoIndex AS vehicleNoIndex " \
+                f",vr_jsonData AS jsonData " \
+                f",vr_errorJusoFlag AS errorJusoFlag " \
+                f"FROM vehicleAllocateResult " \
+                f"WHERE vr_deliveryDate='{delivery_date}' " \
+                f"AND vr_meridiemType='{is_am}' " \
+                f"AND vr_meridiemFlag='1' AND vr_locationId='3' " \
+                f"GROUP BY vr_vehicleNo, vr_vehicleNoIndex " \
+                f"ORDER BY vr_vehicleNo*1 ASC, vr_vehicleNoIndex*1 ASC "
+
+        self.cursor.execute(query)
+        results: list = self.cursor.fetchall()
+
+        for result in results:
+            result['jsonData'] = json.loads(result['jsonData']) if result['jsonData'] else None
+
+        return results
+
+    def get_customers(self) -> list:
+        query = f" SELECT * FROM vehicleGuestInfo "
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
+
+    def get_orders(self) -> list:
+        query = f" SELECT * FROM vehicleGuestOrderData WHERE ve_locationId IN ('3', '5')"
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
+
+    def get_mutual_distance(self) -> list:
+        query = f" SELECT vd_guestId, vd_deguestId, vd_distanceValue FROM vehicleGuestMutualDistance"
+        self.cursor.execute(query)
+        return self.cursor.fetchall()

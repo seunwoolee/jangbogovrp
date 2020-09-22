@@ -28,3 +28,14 @@ def map_groups(request: Request) -> Response:
     delivery_date: str = delivery_date.strftime('%Y-%m-%d')
     result: list = mysql.get_map_group_list(delivery_date, vehicle_allocate_status['vs_meridiemType'])
     return Response(data=result, status=200)
+
+
+@api_view(['GET'])
+def maps(request: Request) -> Response:
+    delivery_date: str = request.query_params.get('deliveryDate', '')
+    is_am: str = request.query_params.get('isAm', '')
+
+    mysql = DB()
+    result: list = mysql.get_maps(delivery_date, is_am)
+
+    return Response(data=result, status=200)
