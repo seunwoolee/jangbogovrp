@@ -19,12 +19,13 @@ class Customer(TimeStampedModel):
 class Order(TimeStampedModel):
     order_id = models.CharField(max_length=50)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='+')
-    date = models.DateTimeField()
+    date = models.DateField()
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
     price = models.PositiveIntegerField()
+    is_am = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'{self.customer.name}({self.price}원)'
+        return f'{self.customer.name}({self.price}원) {self.date} ({self.is_am})'
 
 
 class MutualDistance(TimeStampedModel):

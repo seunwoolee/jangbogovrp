@@ -118,7 +118,8 @@ class DB(MysqlMixin):
         return self.cursor.fetchall()
 
     def get_orders(self) -> list:
-        query = f" SELECT * FROM vehicleGuestOrderData WHERE ve_locationId IN ('3', '5')"
+        query = f" SELECT * FROM vehicleGuestOrderData " \
+                f"WHERE ve_locationId IN ('3', '5') AND ve_guestName NOT IN ('admin', 'chilgok') AND ve_deliveryDate < '2020-09-22' "
         self.cursor.execute(query)
         return self.cursor.fetchall()
 
