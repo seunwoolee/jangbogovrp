@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+from delivery.models import RouteM, RouteD
+
+admin.site.register(RouteM)
+admin.site.register(RouteD)
