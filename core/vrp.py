@@ -1,15 +1,17 @@
 from __future__ import print_function
 
 from datetime import date
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Tuple
 
-from django.db.models import Q
+from django.db.models import Q, Sum
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 
 from company.models import Company
 from customer.models import Order, MutualDistance, Customer
 from delivery.models import RouteM, RouteD
+
+Customers = List[Tuple]
 
 
 class VRP:
@@ -18,29 +20,67 @@ class VRP:
         self.delivery_date = delivery_date
         self.customers: list = []
 
-    def create_data_model(self) -> Dict[str, Union[list, int]]:
-        data = {}
-        self.customers = list(Order.objects.values_list('customer', flat=True).filter(
-            Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=True)).distinct())
-        starting_position: Customer = Customer.objects.filter(customer_id='admin').first() # TODO 하드코딩
-        self.customers.insert(0, starting_position.id)
-        temp: list = []
-        for start in self.customers:
-            from_to_arr: list = []
+    # def create_data_model(self) -> Dict[str, Union[list, int]]:
+    #     data = {}
+    #     self.customers = list(Order.objects.values_list('customer', flat=True).filter(
+    #         Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=True)).distinct())
+    #     starting_position: Customer = Customer.objects.filter(customer_id='admin').first() # TODO 하드코딩
+    #     self.customers.insert(0, starting_position.id)
+    #     temp: list = []
+    #     for start in self.customers:
+    #         from_to_arr: list = []
+    #
+    #         for end in self.customers:
+    #             if start == end:
+    #                 from_to_arr.append(0)
+    #                 continue
+    #
+    #             distance: int = MutualDistance.objects.filter(Q(start__id=start), Q(end__id=end)).first().distance
+    #             from_to_arr.append(distance)
+    #
+    #         temp.append(from_to_arr)
+    #
+    #     data['distance_matrix'] = temp
+    #     data['num_vehicles'] = 4
+    #     data['depot'] = 0
+    #     return data
 
-            for end in self.customers:
+    def create_data_model(self):
+        """Stores the data for the problem."""
+        data = {}
+        customers: Customers = list(Order.objects.values_list('customer').filter(
+            Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=True)).annotate(test=Sum('price')))
+
+        customers_ids: list = []
+        customers_prices: list = []
+
+        for customer in customers:
+            customers_ids.append(customer[0])
+            customers_prices.append(customer[1])
+
+        starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
+        customers_ids.insert(0, starting_position.id)
+        customers_prices.insert(0, 0)
+        each_price = round(sum(customers_prices) / 4)
+        temp: list = []
+        for start in customers_ids:
+            from_to_arr: list = []
+            for end in customers_ids:
                 if start == end:
                     from_to_arr.append(0)
                     continue
 
                 distance: int = MutualDistance.objects.filter(Q(start__id=start), Q(end__id=end)).first().distance
                 from_to_arr.append(distance)
-
             temp.append(from_to_arr)
 
         data['distance_matrix'] = temp
+        data['demands'] = customers_prices
+        data['vehicle_capacities'] = [each_price + 10000, each_price + 10000, each_price + 10000, each_price + 10000]
         data['num_vehicles'] = 4
         data['depot'] = 0
+
+        self.customers = customers_ids
         return data
 
     def create_routes(self, data, manager, routing, solution) -> List[List]:
@@ -91,17 +131,37 @@ class VRP:
 
 
 
-        # Add Distance constraint.
-        dimension_name = 'Distance'
-        routing.AddDimension(
-            transit_callback_index,
-            0,  # no slack
-            99999999,  # vehicle maximum travel distance
-            # 70000,  # vehicle maximum travel distance
+        # # Add Distance constraint.
+        # dimension_name = 'Distance'
+        # routing.AddDimension(
+        #     transit_callback_index,
+        #     0,  # no slack
+        #     99999999,  # vehicle maximum travel distance
+        #     # 70000,  # vehicle maximum travel distance
+        #     True,  # start cumul to zero
+        #     dimension_name)
+        # distance_dimension = routing.GetDimensionOrDie(dimension_name)
+        # distance_dimension.SetGlobalSpanCostCoefficient(70)
+        #
+        # # Setting first solution heuristic.
+        # search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+        # search_parameters.first_solution_strategy = (
+        #     routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+        # Add Capacity constraint.
+        def demand_callback(from_index):
+            """Returns the demand of the node."""
+            # Convert from routing variable Index to demands NodeIndex.
+            from_node = manager.IndexToNode(from_index)
+            return data['demands'][from_node]
+
+        demand_callback_index = routing.RegisterUnaryTransitCallback(
+            demand_callback)
+        routing.AddDimensionWithVehicleCapacity(
+            demand_callback_index,
+            0,  # null capacity slack
+            data['vehicle_capacities'],  # vehicle maximum capacities
             True,  # start cumul to zero
-            dimension_name)
-        distance_dimension = routing.GetDimensionOrDie(dimension_name)
-        distance_dimension.SetGlobalSpanCostCoefficient(70)
+            'Capacity')
 
         # Setting first solution heuristic.
         search_parameters = pywrapcp.DefaultRoutingSearchParameters()
