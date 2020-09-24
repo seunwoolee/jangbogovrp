@@ -18,7 +18,7 @@ def create_route(request: Request) -> Response:
     RouteM.objects.all().delete()
     user: User = request.user
     code: str = user.company_info.first().code
-    vrp: VRP = VRP(code, '2020-09-21')
+    vrp: VRP = VRP(code, '2020-09-16')
     data: Dict[str, Union[list, int]] = vrp.create_data_model()
     routes: List[List] = vrp.vrp(data)
     vrp.save_route(routes)

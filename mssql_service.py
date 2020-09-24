@@ -1,3 +1,6 @@
+from datetime import date
+from typing import List, Dict
+
 import pymssql
 from rest_framework.response import Response
 
@@ -35,10 +38,11 @@ class ERPDB(MssqlMixin):
         :return: order data list
         """
 
+        today = date.today().strftime('%Y-%m-%d')
         CRUN = " "
         CorpCode = "10001"
-        StartDDay = '2020-09-03'
-        EndDDay = '2020-09-03'
+        StartDDay = today
+        EndDDay = today
         pStCode = '003'
         StCode = '003'
         IsMorning = '1'
@@ -79,3 +83,34 @@ class ERPDB(MssqlMixin):
             temp_dict['deliveryDate'] = row[22]
             result.append(temp_dict)
         return result
+
+    def pre_processing_geolocations(self, is_am: bool) -> List[Dict]:
+        orders = self.get_order_data(is_am=is_am)
+        geolocations: list = []
+
+        for order in orders:
+            address: str = order['address']
+            arr = address.split()
+            si = arr.pop(0)
+            gu = arr.pop(0)
+            dong = arr.pop(0)
+            bun_ji = arr.pop(0)
+
+            if len(arr) == 0:
+                detail = ''
+            elif len(arr) == 1:
+                detail = arr[0]
+            else:
+                detail = f'{arr[0]} {arr[1]}'
+
+            geolocations.append(
+                {'orderNumber': order['orderNumber'],
+                 'si': si, 'gu': gu, 'dong': dong, 'bun_ji': bun_ji, 'detail': detail}
+            )
+
+        return geolocations
+
+    def update_geolocation(self, order_number: str, lat: str, lon: str):
+        sql = f" UPDATE table_OrderSheet SET DevX='{lon}', DevY='{lat}' WHERE SaCode='{order_number}'"
+        self.cursor.execute(sql)
+        self.conn.commit()

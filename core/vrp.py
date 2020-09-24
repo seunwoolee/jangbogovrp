@@ -20,36 +20,11 @@ class VRP:
         self.delivery_date = delivery_date
         self.customers: list = []
 
-    # def create_data_model(self) -> Dict[str, Union[list, int]]:
-    #     data = {}
-    #     self.customers = list(Order.objects.values_list('customer', flat=True).filter(
-    #         Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=True)).distinct())
-    #     starting_position: Customer = Customer.objects.filter(customer_id='admin').first() # TODO 하드코딩
-    #     self.customers.insert(0, starting_position.id)
-    #     temp: list = []
-    #     for start in self.customers:
-    #         from_to_arr: list = []
-    #
-    #         for end in self.customers:
-    #             if start == end:
-    #                 from_to_arr.append(0)
-    #                 continue
-    #
-    #             distance: int = MutualDistance.objects.filter(Q(start__id=start), Q(end__id=end)).first().distance
-    #             from_to_arr.append(distance)
-    #
-    #         temp.append(from_to_arr)
-    #
-    #     data['distance_matrix'] = temp
-    #     data['num_vehicles'] = 4
-    #     data['depot'] = 0
-    #     return data
-
     def create_data_model(self):
         """Stores the data for the problem."""
         data = {}
         customers: Customers = list(Order.objects.values_list('customer').filter(
-            Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=True)).annotate(test=Sum('price')))
+            Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=True)).annotate(group_price=Sum('price')))
 
         customers_ids: list = []
         customers_prices: list = []
@@ -61,8 +36,9 @@ class VRP:
         starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
         customers_ids.insert(0, starting_position.id)
         customers_prices.insert(0, 0)
-        each_price = round(sum(customers_prices) / 4)
-        temp: list = []
+        each_price = round(sum(customers_prices) * 1.2 / 4)
+        from_to_arrs: list = []
+
         for start in customers_ids:
             from_to_arr: list = []
             for end in customers_ids:
@@ -72,11 +48,11 @@ class VRP:
 
                 distance: int = MutualDistance.objects.filter(Q(start__id=start), Q(end__id=end)).first().distance
                 from_to_arr.append(distance)
-            temp.append(from_to_arr)
+            from_to_arrs.append(from_to_arr)
 
-        data['distance_matrix'] = temp
+        data['distance_matrix'] = from_to_arrs
         data['demands'] = customers_prices
-        data['vehicle_capacities'] = [each_price + 10000, each_price + 10000, each_price + 10000, each_price + 10000]
+        data['vehicle_capacities'] = [each_price, each_price, each_price, each_price]
         data['num_vehicles'] = 4
         data['depot'] = 0
 
@@ -128,26 +104,6 @@ class VRP:
         # Define cost of each arc.
         routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
 
-
-
-
-        # # Add Distance constraint.
-        # dimension_name = 'Distance'
-        # routing.AddDimension(
-        #     transit_callback_index,
-        #     0,  # no slack
-        #     99999999,  # vehicle maximum travel distance
-        #     # 70000,  # vehicle maximum travel distance
-        #     True,  # start cumul to zero
-        #     dimension_name)
-        # distance_dimension = routing.GetDimensionOrDie(dimension_name)
-        # distance_dimension.SetGlobalSpanCostCoefficient(70)
-        #
-        # # Setting first solution heuristic.
-        # search_parameters = pywrapcp.DefaultRoutingSearchParameters()
-        # search_parameters.first_solution_strategy = (
-        #     routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
-        # Add Capacity constraint.
         def demand_callback(from_index):
             """Returns the demand of the node."""
             # Convert from routing variable Index to demands NodeIndex.

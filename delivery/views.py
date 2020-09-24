@@ -10,6 +10,7 @@ from mysql_service import DB
 
 @api_view(['GET'])
 def deliveries(request: Request) -> Response:
+
     start_date = request.query_params.get('startDate', '')
     end_date = request.query_params.get('endDate', '')
     is_am = request.query_params.get('isAm', True)
