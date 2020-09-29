@@ -13,9 +13,14 @@ from mysql_service import DB
 if __name__ == '__main__':
     mysql = DB()
     orders: list = mysql.get_orders()
+
+    # orders: list = mysql.get_chilseong_orders()
+
+    # Order.objects.all().delete()
+
     for order in orders:
         location_id = '00' + str(order['ve_locationId'])
-        customer = Customer.objects.get(customer_id=order['ve_guestId'])
+        customer = Customer.objects.filter(customer_id=order['ve_guestId']).first()
         company = Company.objects.get(code=location_id)
         if order['ve_meridiemType'] == '0':
             is_am = True

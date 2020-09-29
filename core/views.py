@@ -13,12 +13,16 @@ from delivery.models import RouteD, RouteM
 from delivery.serializers import RouteDSerializer
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def create_route(request: Request) -> Response:
+    delivery_date = request.data.get('deliveryDate', '')
+    car_count = request.data.get('carCount', '')
+    is_am = request.data.get('isAm', True)
+
     RouteM.objects.all().delete()
     user: User = request.user
     code: str = user.company_info.first().code
-    vrp: VRP = VRP(code, '2020-09-16')
+    vrp: VRP = VRP(code, delivery_date, is_am, int(car_count))
     data: Dict[str, Union[list, int]] = vrp.create_data_model()
     routes: List[List] = vrp.vrp(data)
     vrp.save_route(routes)

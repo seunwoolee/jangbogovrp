@@ -3,6 +3,7 @@ from django.db import models
 
 from company.models import Company
 from core.models import TimeStampedModel
+from delivery.models import RouteD
 
 
 class Customer(TimeStampedModel):
@@ -21,6 +22,7 @@ class Order(TimeStampedModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='+')
     date = models.DateField()
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
+    route = models.ForeignKey(RouteD, on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
     price = models.PositiveIntegerField()
     is_am = models.BooleanField(default=True)
 
@@ -32,6 +34,7 @@ class MutualDistance(TimeStampedModel):
     start = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='+')
     end = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='+')
     distance = models.PositiveIntegerField()
+    json_map = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'from {self.start} -> {self.end} distance {self.distance}'

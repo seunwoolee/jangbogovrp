@@ -43,8 +43,10 @@ class ERPDB(MssqlMixin):
         CorpCode = "10001"
         StartDDay = today
         EndDDay = today
-        pStCode = '003'
-        StCode = '003'
+        pStCode = company_code
+        StCode = company_code
+        # pStCode = '003'
+        # StCode = '003'
         IsMorning = '1'
 
         if is_am == False:
@@ -75,7 +77,7 @@ class ERPDB(MssqlMixin):
             temp_dict['flag'] = "1"
             temp_dict['isRoad'] = "n"
             temp_dict['pay'] = row[12]
-            temp_dict['address'] = row[23]
+            temp_dict['address'] = row[23].strip()
             temp_dict['guestTel'] = ""
             temp_dict['name'] = row[7]
             temp_dict['guestId'] = row[6]
@@ -84,8 +86,8 @@ class ERPDB(MssqlMixin):
             result.append(temp_dict)
         return result
 
-    def pre_processing_geolocations(self, is_am: bool) -> List[Dict]:
-        orders = self.get_order_data(is_am=is_am)
+    def pre_processing_geolocations(self, company_code: str, is_am: bool) -> List[Dict]:
+        orders = self.get_order_data(company_code, is_am=is_am)
         geolocations: list = []
 
         for order in orders:
@@ -111,6 +113,6 @@ class ERPDB(MssqlMixin):
         return geolocations
 
     def update_geolocation(self, order_number: str, lat: str, lon: str):
-        sql = f" UPDATE table_OrderSheet SET DevX='{lon}', DevY='{lat}' WHERE SaCode='{order_number}'"
+        sql = f"UPDATE table_OrderSheet SET DevX='{lon}', DevY='{lat}' WHERE SaCode='{order_number}'"
         self.cursor.execute(sql)
         self.conn.commit()

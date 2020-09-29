@@ -23,6 +23,7 @@ if __name__ == '__main__':
             if MutualDistance.objects.filter(Q(start=start), Q(end=end)).first():
                 continue
 
+
             MutualDistance.objects.create(
                 start=start,
                 end=end,

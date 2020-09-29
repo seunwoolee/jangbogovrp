@@ -15,16 +15,18 @@ Customers = List[Tuple]
 
 
 class VRP:
-    def __init__(self, code: str, delivery_date: date):
+    def __init__(self, code: str, delivery_date: str, is_am: str, car_count: int):
         self.code = code
         self.delivery_date = delivery_date
+        self.car_count = car_count
         self.customers: list = []
+        self.is_am = is_am
 
     def create_data_model(self):
-        """Stores the data for the problem."""
         data = {}
         customers: Customers = list(Order.objects.values_list('customer').filter(
-            Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=True)).annotate(group_price=Sum('price')))
+            Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=self.is_am))
+                                    .annotate(group_price=Sum('price')))
 
         customers_ids: list = []
         customers_prices: list = []
@@ -36,7 +38,8 @@ class VRP:
         starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
         customers_ids.insert(0, starting_position.id)
         customers_prices.insert(0, 0)
-        each_price = round(sum(customers_prices) * 1.2 / 4)
+        # each_price = round(sum(customers_prices) * 1.2 / 4)
+        each_price = round(sum(customers_prices) * 1.2 / self.car_count)
         from_to_arrs: list = []
 
         for start in customers_ids:
@@ -45,15 +48,14 @@ class VRP:
                 if start == end:
                     from_to_arr.append(0)
                     continue
-
                 distance: int = MutualDistance.objects.filter(Q(start__id=start), Q(end__id=end)).first().distance
                 from_to_arr.append(distance)
             from_to_arrs.append(from_to_arr)
 
         data['distance_matrix'] = from_to_arrs
         data['demands'] = customers_prices
-        data['vehicle_capacities'] = [each_price, each_price, each_price, each_price]
-        data['num_vehicles'] = 4
+        data['vehicle_capacities'] = [each_price] * self.car_count
+        data['num_vehicles'] = self.car_count
         data['depot'] = 0
 
         self.customers = customers_ids
@@ -76,7 +78,7 @@ class VRP:
                 route_distance += routing.GetArcCostForVehicle(
                     previous_index, index, vehicle_id)
 
-            route.append(0) # 마지막 목적지 insert
+            route.append(0)  # 마지막 목적지 insert
             result.append(route)
 
             plan_output += '{}\n'.format(manager.IndexToNode(index))
@@ -84,7 +86,6 @@ class VRP:
             print(plan_output)
             max_route_distance = max(route_distance, max_route_distance)
         print('Maximum of the route distances: {}m'.format(max_route_distance))
-        print(result)
         return result
 
     def vrp(self, data: dict):
@@ -133,12 +134,14 @@ class VRP:
         return self.create_routes(data, manager, routing, solution)
 
     def save_route(self, routes: List[List]):
+        # orders = Order.objects.filter(Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=self.is_am))
+
         route_m = RouteM.objects.create(
             company=Company.objects.get(code=self.code),
             date=self.delivery_date,
-            is_am=True, # TODO 하드코딩
-            count_car=4, # TODO 하드코딩
-            price=100000, # TODO 하드코딩
+            is_am=self.is_am,
+            count_car=self.car_count,
+            price=100000,  # TODO 하드코딩
             count_location=len(self.customers)
         )
         route_m.save()
@@ -146,9 +149,17 @@ class VRP:
         for route_number, route in enumerate(routes):
             for index in route:
                 customer = Customer.objects.get(id=self.customers[index])
-                RouteD.objects.create(
+                orders = Order.objects.filter(Q(date=self.delivery_date), Q(company__code=self.code),
+                                              Q(is_am=self.is_am), Q(customer=customer))
+                route_d = RouteD.objects.create(
                     route_m=route_m,
                     customer=customer,
-                    route_number=route_number+1,
-                    route_index=index+1,
+                    route_number=route_number + 1,
+                    route_index=index + 1,
                 )
+
+                for order in orders:
+                    order.route = route_d
+                    order.save()
+
+                route_d.save()

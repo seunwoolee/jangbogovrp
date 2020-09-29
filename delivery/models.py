@@ -2,7 +2,6 @@ from django.db import models
 
 from core.models import TimeStampedModel
 from company.models import Company
-from customer.models import Order, Customer
 
 
 class RouteM(TimeStampedModel):
@@ -16,7 +15,7 @@ class RouteM(TimeStampedModel):
 
 class RouteD(TimeStampedModel):
     route_m = models.ForeignKey(RouteM, on_delete=models.CASCADE, related_name='details')
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='+')
+    customer = models.ForeignKey('customer.Customer', on_delete=models.CASCADE, related_name='+')
     route_number = models.PositiveIntegerField()
     route_index = models.PositiveIntegerField()
     json_map = models.TextField(null=True, blank=True)

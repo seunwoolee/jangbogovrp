@@ -7,10 +7,18 @@ import json
 
 class MysqlMixin:
     def __init__(self):
+        # 월배, 칠곡
         self._HOST = "14.63.164.165"
         self._NAME = "jangboja_wolbae"
         self._USER = "wolbae"
         self._PASS = "wolbae^^12"
+
+        # 칠성
+        # self._HOST = "14.63.192.167"
+        # self._NAME = "jangboja_chilseong"
+        # self._USER = "chilseong"
+        # self._PASS = "chilseong^^12"
+
         self.conn: pymysql.Connection = pymysql.connect(host=self._HOST, user=self._USER,
                                                         password=self._PASS,
                                                         db=self._NAME, charset='utf8', cursorclass=DictCursor)
@@ -119,11 +127,23 @@ class DB(MysqlMixin):
 
     def get_orders(self) -> list:
         query = f" SELECT * FROM vehicleGuestOrderData " \
-                f"WHERE ve_locationId IN ('3', '5') AND ve_guestName NOT IN ('admin', 'chilgok') AND ve_deliveryDate < '2020-09-22' "
+                f"WHERE ve_locationId IN ('3', '5') AND ve_guestName NOT IN ('admin', 'chilgok') AND ve_deliveryDate >= '2020-09-21' "
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
+
+    def get_chilseong_orders(self) -> list:
+        query = f" SELECT * FROM vehicleGuestOrderData " \
+                f"WHERE ve_locationId IN ('6') AND ve_guestName NOT IN ('admin', 'chilseong') "
         self.cursor.execute(query)
         return self.cursor.fetchall()
 
     def get_mutual_distance(self) -> list:
-        query = f" SELECT vd_guestId, vd_deguestId, vd_distanceValue FROM vehicleGuestMutualDistance"
+        query = f" SELECT vd_guestId, vd_deguestId, vd_distanceValue, vd_jsonData FROM vehicleGuestMutualDistance"
         self.cursor.execute(query)
         return self.cursor.fetchall()
+
+    def get_one_mutual_distance(self, start: str, end: str) -> dict:
+        query = f" SELECT vd_guestId, vd_deguestId, vd_distanceValue, vd_jsonData FROM vehicleGuestMutualDistance " \
+                f" WHERE vd_guestId = '{start}' AND vd_deguestId = '{end}' "
+        self.cursor.execute(query)
+        return self.cursor.fetchone()
