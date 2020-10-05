@@ -145,5 +145,6 @@ class DB(MysqlMixin):
     def get_one_mutual_distance(self, start: str, end: str) -> dict:
         query = f" SELECT vd_guestId, vd_deguestId, vd_distanceValue, vd_jsonData FROM vehicleGuestMutualDistance " \
                 f" WHERE vd_guestId = '{start}' AND vd_deguestId = '{end}' "
+        print(query)
         self.cursor.execute(query)
         return self.cursor.fetchone()

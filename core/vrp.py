@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import random
 from datetime import date
 from typing import Dict, Union, List, Tuple
 
@@ -38,8 +39,9 @@ class VRP:
         starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
         customers_ids.insert(0, starting_position.id)
         customers_prices.insert(0, 0)
-        # each_price = round(sum(customers_prices) * 1.2 / 4)
-        each_price = round(sum(customers_prices) * 1.2 / self.car_count)
+        total_price = sum(customers_prices) * 1.1
+        each_price = round(total_price / self.car_count)
+        # each_price = round(sum(customers_prices) / self.car_count)
         from_to_arrs: list = []
 
         for start in customers_ids:
@@ -54,6 +56,7 @@ class VRP:
 
         data['distance_matrix'] = from_to_arrs
         data['demands'] = customers_prices
+        # data['vehicle_capacities'] = [each_price * random.uniform(1, 1.20)] * self.car_count
         data['vehicle_capacities'] = [each_price] * self.car_count
         data['num_vehicles'] = self.car_count
         data['depot'] = 0
