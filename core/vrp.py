@@ -1,7 +1,7 @@
 from __future__ import print_function
+import math
+from geopy.distance import geodesic
 
-import random
-from datetime import date
 from typing import Dict, Union, List, Tuple
 
 from django.db.models import Q, Sum
@@ -23,6 +23,9 @@ class VRP:
         self.customers: list = []
         self.is_am = is_am
 
+    def calculate_distance(self, x1, y1, x2, y2) -> float:
+        return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
     def create_data_model(self):
         data = {}
         customers: Customers = list(Order.objects.values_list('customer').filter(
@@ -37,7 +40,8 @@ class VRP:
             customers_prices.append(customer[1])
 
         if self.code == '005':
-            starting_position: Customer = Customer.objects.filter(customer_id='chilgok').first()  # TODO 마이그레이션 시 칠곡 어떻게 할 지 풀어야함
+            starting_position: Customer = Customer.objects.filter(
+                customer_id='chilgok').first()  # TODO 마이그레이션 시 칠곡 어떻게 할 지 풀어야함
         else:
             starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
 
@@ -55,7 +59,13 @@ class VRP:
                     from_to_arr.append(0)
                     continue
 
-                distance: int = MutualDistance.objects.filter(Q(start__id=start), Q(end__id=end)).first().distance
+                start_customer: Customer = Customer.objects.get(id=start)
+                end_customer: Customer = Customer.objects.get(id=end)
+                distance: int = round(geodesic((start_customer.latitude, start_customer.longitude),
+                                           (end_customer.latitude, end_customer.longitude)).meters)
+                # distance: float = self.calculate_distance(
+                #     start_customer.latitude, start_customer.longitude, end_customer.latitude, end_customer.longitude)
+                # distance: int = MutualDistance.objects.filter(Q(start__id=start), Q(end__id=end)).first().distance
                 from_to_arr.append(distance)
             from_to_arrs.append(from_to_arr)
 
@@ -171,13 +181,13 @@ class VRP:
                     order.route = route_d
                     order.save()
 
-                if from_route_d:
-                    json_map: str = MutualDistance.objects.filter(
-                        Q(start=from_route_d.customer), Q(end=route_d.customer)).first().json_map
-                    from_route_d.json_map = json_map
-                    from_route_d.save()
+                # if from_route_d:
+                #     json_map: str = MutualDistance.objects.filter(
+                #         Q(start=from_route_d.customer), Q(end=route_d.customer)).first().json_map
+                #     from_route_d.json_map = json_map
+                #     from_route_d.save()
 
-                from_route_d = route_d
+                # from_route_d = route_d
                 route_d.save()
 
         return route_m.id

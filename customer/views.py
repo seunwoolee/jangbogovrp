@@ -100,74 +100,35 @@ def create_customers(request: Request) -> Response:
             is_am=is_am,
         ).save()
 
-        all_customer_ids.append(customer.id)
+        # all_customer_ids.append(customer.id)
 
-    invalid_mutual_distance_customers: List[Tuple] = []
-    for start_customer_pk in all_customer_ids:
-        for end_customer_pk in all_customer_ids:
-            if start_customer_pk == end_customer_pk:
-                continue
+    # invalid_mutual_distance_customers: List[Tuple] = []
+    # for start_customer_pk in all_customer_ids:
+    #     for end_customer_pk in all_customer_ids:
+    #         if start_customer_pk == end_customer_pk:
+    #             continue
+    #
+    #         if not MutualDistance.objects.filter(
+    #                 Q(start__id=start_customer_pk), Q(end__id=end_customer_pk)):
+    #             start = Customer.objects.get(id=start_customer_pk)
+    #             end = Customer.objects.get(id=end_customer_pk)
+    #             invalid_mutual_distance_customers.append(
+    #                 (
+    #                     {
+    #                         'customer_id': start.id,
+    #                         'lon': start.longitude,
+    #                         'lat': start.latitude,
+    #                     },
+    #                     {
+    #                         'customer_id': end.id,
+    #                         'lon': end.longitude,
+    #                         'lat': end.latitude,
+    #                     },
+    #                 )
+    #             )
 
-            if not MutualDistance.objects.filter(
-                    Q(start__id=start_customer_pk), Q(end__id=end_customer_pk)):
-                start = Customer.objects.get(id=start_customer_pk)
-                end = Customer.objects.get(id=end_customer_pk)
-                invalid_mutual_distance_customers.append(
-                    (
-                        {
-                            'customer_id': start.id,
-                            'lon': start.longitude,
-                            'lat': start.latitude,
-                        },
-                        {
-                            'customer_id': end.id,
-                            'lon': end.longitude,
-                            'lat': end.latitude,
-                        },
-                    )
-                )
-
-            # if not MutualDistance.objects.filter(
-            #         Q(start__id=end_customer_pk), Q(end__id=start_customer_pk)):
-            #     start = Customer.objects.get(id=end_customer_pk)
-            #     end = Customer.objects.get(id=start_customer_pk)
-            #     invalid_mutual_distance_customers.append(
-            #         (
-            #             {
-            #                 'customer_id': start.id,
-            #                 'lon': start.longitude,
-            #                 'lat': start.latitude,
-            #             },
-            #             {
-            #                 'customer_id': end.id,
-            #                 'lon': end.longitude,
-            #                 'lat': end.latitude,
-            #             },
-            #         )
-            #     )
-
-    # TODO MYSQL 에서 mutualDistance(start, end) 검색
-    # 1. mysql가져오고 없으면 Tmap 던짐(test)
-    mysql = DB()
-    result: list = []
-    for invalid_mutual_distance_customer in invalid_mutual_distance_customers:
-        start = invalid_mutual_distance_customer[0]
-        end = invalid_mutual_distance_customer[1]
-
-        start_customer = Customer.objects.get(id=start['customer_id'])
-        end_customer = Customer.objects.get(id=end['customer_id'])
-        mutual_distance: dict = mysql.get_one_mutual_distance(start_customer.customer_id, end_customer.customer_id)
-        if mutual_distance:
-            MutualDistance.objects.create(
-                start=start_customer,
-                end=end_customer,
-                distance=mutual_distance['vd_distanceValue'],
-                json_map=mutual_distance['vd_jsonData']
-            ).save()
-        else:
-            print(start_customer.customer_id, end_customer.customer_id)
-            result.append(invalid_mutual_distance_customer)
-    return Response(data=result, status=200) # TODO invalid_mutual_distance_customers을 던져야함
+    # return Response(data=result, status=200) # TODO invalid_mutual_distance_customers을 던져야함
+    return Response(status=200) # TODO invalid_mutual_distance_customers을 던져야함
 
 
 @api_view(['POST'])
