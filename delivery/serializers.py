@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
-from customer.serializers import CustomerSerializer
+from customer.serializers import CustomerSerializer, OrderSerializer
 from delivery.models import RouteD, RouteM
 
 
 class RouteDSerializer(serializers.ModelSerializer):
     customer_info = CustomerSerializer(source='customer', read_only=True)
+    orders = OrderSerializer(source='route_orders', read_only=True, many=True)
 
     class Meta:
         model = RouteD

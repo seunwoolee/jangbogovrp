@@ -18,4 +18,5 @@ class RouteD(TimeStampedModel):
     customer = models.ForeignKey('customer.Customer', on_delete=models.CASCADE, related_name='+')
     route_number = models.PositiveIntegerField()
     route_index = models.PositiveIntegerField()
+    distance = models.PositiveIntegerField(default=0)
     json_map = models.TextField(null=True, blank=True)

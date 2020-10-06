@@ -36,12 +36,16 @@ class VRP:
             customers_ids.append(customer[0])
             customers_prices.append(customer[1])
 
-        starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
+        if self.code == '005':
+            starting_position: Customer = Customer.objects.filter(customer_id='chilgok').first()  # TODO 마이그레이션 시 칠곡 어떻게 할 지 풀어야함
+        else:
+            starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
+
+        # starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
         customers_ids.insert(0, starting_position.id)
         customers_prices.insert(0, 0)
         total_price = sum(customers_prices) * 1.1
         each_price = round(total_price / self.car_count)
-        # each_price = round(sum(customers_prices) / self.car_count)
         from_to_arrs: list = []
 
         for start in customers_ids:
@@ -50,13 +54,13 @@ class VRP:
                 if start == end:
                     from_to_arr.append(0)
                     continue
+
                 distance: int = MutualDistance.objects.filter(Q(start__id=start), Q(end__id=end)).first().distance
                 from_to_arr.append(distance)
             from_to_arrs.append(from_to_arr)
 
         data['distance_matrix'] = from_to_arrs
         data['demands'] = customers_prices
-        # data['vehicle_capacities'] = [each_price * random.uniform(1, 1.20)] * self.car_count
         data['vehicle_capacities'] = [each_price] * self.car_count
         data['num_vehicles'] = self.car_count
         data['depot'] = 0
@@ -74,14 +78,15 @@ class VRP:
             plan_output = 'Route for vehicle {}:\n'.format(vehicle_id)
             route_distance = 0
             while not routing.IsEnd(index):
-                route.append(manager.IndexToNode(index))
                 plan_output += ' {} -> '.format(manager.IndexToNode(index))
                 previous_index = index
                 index = solution.Value(routing.NextVar(index))
-                route_distance += routing.GetArcCostForVehicle(
+                distance = routing.GetArcCostForVehicle(
                     previous_index, index, vehicle_id)
+                route_distance += distance
+                route.append({'index': manager.IndexToNode(index), 'distance': distance})
 
-            route.append(0)  # 마지막 목적지 insert
+            # route.append({'index': 0, 'distance': 0})  # 마지막 목적지 insert
             result.append(route)
 
             plan_output += '{}\n'.format(manager.IndexToNode(index))
@@ -136,9 +141,7 @@ class VRP:
 
         return self.create_routes(data, manager, routing, solution)
 
-    def save_route(self, routes: List[List]):
-        # orders = Order.objects.filter(Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=self.is_am))
-
+    def save_route(self, routes: List[List]) -> int:
         route_m = RouteM.objects.create(
             company=Company.objects.get(code=self.code),
             date=self.delivery_date,
@@ -150,19 +153,31 @@ class VRP:
         route_m.save()
 
         for route_number, route in enumerate(routes):
-            for index in route:
-                customer = Customer.objects.get(id=self.customers[index])
+
+            from_route_d: RouteD = RouteD.objects.none()
+
+            for route_index, _route in enumerate(route):
+                customer = Customer.objects.get(id=self.customers[_route['index']])
                 orders = Order.objects.filter(Q(date=self.delivery_date), Q(company__code=self.code),
                                               Q(is_am=self.is_am), Q(customer=customer))
                 route_d = RouteD.objects.create(
+                    distance=_route['distance'],
                     route_m=route_m,
                     customer=customer,
                     route_number=route_number + 1,
-                    route_index=index + 1,
+                    route_index=route_index + 1,
                 )
-
                 for order in orders:
                     order.route = route_d
                     order.save()
 
+                if from_route_d:
+                    json_map: str = MutualDistance.objects.filter(
+                        Q(start=from_route_d.customer), Q(end=route_d.customer)).first().json_map
+                    from_route_d.json_map = json_map
+                    from_route_d.save()
+
+                from_route_d = route_d
                 route_d.save()
+
+        return route_m.id

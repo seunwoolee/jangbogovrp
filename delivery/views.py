@@ -27,13 +27,13 @@ def deliveries(request: Request) -> Response:
 
 @api_view(['GET'])
 def map_groups(request: Request) -> Response:
-    # route_m_id = request.query_params.get('routeMId', '')
-    # mysql = DB()
-    # vehicle_allocate_status: dict = mysql.get_vehicle_allocate_status(route_m_id)
-    # delivery_date: datetime = vehicle_allocate_status['vs_deliveryDate']
-    # delivery_date: str = delivery_date.strftime('%Y-%m-%d')
-    # result: list = mysql.get_map_group_list(delivery_date, vehicle_allocate_status['vs_meridiemType'])
-    return Response(data=[], status=200)
+    route_m_id = request.query_params.get('routeMId', '')
+    mysql = DB()
+    vehicle_allocate_status: dict = mysql.get_vehicle_allocate_status(route_m_id)
+    delivery_date: datetime = vehicle_allocate_status['vs_deliveryDate']
+    delivery_date: str = delivery_date.strftime('%Y-%m-%d')
+    result: list = mysql.get_map_group_list(delivery_date, vehicle_allocate_status['vs_meridiemType'])
+    return Response(data=result, status=200)
 
 
 @api_view(['GET'])
@@ -41,5 +41,4 @@ def maps(request: Request) -> Response:
     route_m: str = request.query_params.get('routeM', '')
     route_m = RouteM.objects.get(id=route_m)
     serializer = RouteMSerializer(route_m)
-
     return Response(data=serializer.data, status=200)

@@ -48,12 +48,6 @@ def save_geolocation(request: Request) -> Response:
 
 @api_view(['POST'])
 def create_customers(request: Request) -> Response:
-    """
-    고객 정보 업데이트 및 생성
-    업데이트 및 생성된 고객은 Mutual_Distance create 필요
-    :param request:
-    :return: is_not_valid_customers
-    """
     is_am = request.data.get('isAm', True)
     user: User = request.user
     company: Company = user.company_info.first()
@@ -77,6 +71,10 @@ def create_customers(request: Request) -> Response:
             return Response(data=order, status=400)
 
     for order in orders:
+
+        if order['pay'] < 0: # TODO 김진석 과장 문의(외상 마이너스 값 처리)
+            continue
+
         customer = Customer.objects.filter(customer_id=order['guestId']).first()
         if customer:
             customer.address = order['address']
@@ -129,24 +127,24 @@ def create_customers(request: Request) -> Response:
                     )
                 )
 
-            if not MutualDistance.objects.filter(
-                    Q(start__id=end_customer_pk), Q(end__id=start_customer_pk)):
-                start = Customer.objects.get(id=end_customer_pk)
-                end = Customer.objects.get(id=start_customer_pk)
-                invalid_mutual_distance_customers.append(
-                    (
-                        {
-                            'customer_id': start.id,
-                            'lon': start.longitude,
-                            'lat': start.latitude,
-                        },
-                        {
-                            'customer_id': end.id,
-                            'lon': end.longitude,
-                            'lat': end.latitude,
-                        },
-                    )
-                )
+            # if not MutualDistance.objects.filter(
+            #         Q(start__id=end_customer_pk), Q(end__id=start_customer_pk)):
+            #     start = Customer.objects.get(id=end_customer_pk)
+            #     end = Customer.objects.get(id=start_customer_pk)
+            #     invalid_mutual_distance_customers.append(
+            #         (
+            #             {
+            #                 'customer_id': start.id,
+            #                 'lon': start.longitude,
+            #                 'lat': start.latitude,
+            #             },
+            #             {
+            #                 'customer_id': end.id,
+            #                 'lon': end.longitude,
+            #                 'lat': end.latitude,
+            #             },
+            #         )
+            #     )
 
     # TODO MYSQL 에서 mutualDistance(start, end) 검색
     # 1. mysql가져오고 없으면 Tmap 던짐(test)

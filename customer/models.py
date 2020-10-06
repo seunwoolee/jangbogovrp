@@ -22,7 +22,7 @@ class Order(TimeStampedModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='+')
     date = models.DateField()
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
-    route = models.ForeignKey(RouteD, on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
+    route = models.ForeignKey(RouteD, on_delete=models.CASCADE, related_name='route_orders', null=True, blank=True)
     price = models.PositiveIntegerField()
     is_am = models.BooleanField(default=True)
 

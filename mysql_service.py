@@ -8,16 +8,16 @@ import json
 class MysqlMixin:
     def __init__(self):
         # 월배, 칠곡
-        self._HOST = "14.63.164.165"
-        self._NAME = "jangboja_wolbae"
-        self._USER = "wolbae"
-        self._PASS = "wolbae^^12"
+        # self._HOST = "14.63.164.165"
+        # self._NAME = "jangboja_wolbae"
+        # self._USER = "wolbae"
+        # self._PASS = "wolbae^^12"
 
         # 칠성
-        # self._HOST = "14.63.192.167"
-        # self._NAME = "jangboja_chilseong"
-        # self._USER = "chilseong"
-        # self._PASS = "chilseong^^12"
+        self._HOST = "14.63.192.167"
+        self._NAME = "jangboja_chilseong"
+        self._USER = "chilseong"
+        self._PASS = "chilseong^^12"
 
         self.conn: pymysql.Connection = pymysql.connect(host=self._HOST, user=self._USER,
                                                         password=self._PASS,

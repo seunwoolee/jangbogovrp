@@ -31,13 +31,13 @@ class DeliveryTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_map_groups_view(self):
-        data = {'vs_seq': '870'}
+        data = {'routeMId': '653'}
         response: Response = self.drf_client.get('/delivery/map_groups/', data=data)
         self.assertIsInstance(response.data, list)
         self.assertEqual(response.status_code, 200)
 
     def test_maps_view(self):
-        data = {'deliveryDate': '2020-09-09', 'isAm': '0'}
+        data = {'routeM': 87}
         response: Response = self.drf_client.get('/delivery/maps/', data=data)
         self.assertIsInstance(response.data, list)
         self.assertEqual(response.status_code, 200)
