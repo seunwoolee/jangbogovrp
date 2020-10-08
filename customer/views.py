@@ -25,18 +25,6 @@ def preview_order(request: Request) -> Response:
 
 
 @api_view(['GET'])
-def pre_processing_geolocations(request: Request) -> Response:
-    is_am = request.query_params.get('isAm', '')
-    is_am = True if is_am == 'true' else False
-    user: User = request.user
-    company: Company = user.company_info.first()
-
-    erp_db = ERPDB()
-    orders: list = erp_db.pre_processing_geolocations(company.code, is_am=is_am)
-    return Response(data=orders, status=200)
-
-
-@api_view(['GET'])
 def save_geolocation(request: Request) -> Response:
     order_number = request.query_params.get('orderNumber', '')
     lat = request.query_params.get('lat', '')

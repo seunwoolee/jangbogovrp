@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from company.models import Company
 from delivery.models import RouteM
-from delivery.serializers import RouteMSerializer
+from delivery.serializers import RouteMSerializer, RouteMDSerializer
 from mysql_service import DB
 
 
@@ -40,5 +40,5 @@ def map_groups(request: Request) -> Response:
 def maps(request: Request) -> Response:
     route_m: str = request.query_params.get('routeM', '')
     route_m = RouteM.objects.get(id=route_m)
-    serializer = RouteMSerializer(route_m)
+    serializer = RouteMDSerializer(route_m)
     return Response(data=serializer.data, status=200)

@@ -21,7 +21,7 @@ if __name__ == '__main__':
             Customer.objects.create(
                 customer_id=customer['vg_guestId'],
                 name=customer['vg_guestName'],
-                address=customer['vg_guestJuso'],
+                address=customer['vg_guestJuso'].strip(),
                 latitude=customer['vg_guestLat'],
                 longitude=customer['vg_guestLon'],
             ).save()

@@ -13,8 +13,15 @@ class RouteDSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class RouteMSerializer(serializers.ModelSerializer):
+class RouteMDSerializer(serializers.ModelSerializer):
     route_d = RouteDSerializer(source='details', read_only=True, many=True)
+
+    class Meta:
+        model = RouteM
+        fields = '__all__'
+
+
+class RouteMSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RouteM
