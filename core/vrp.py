@@ -39,13 +39,7 @@ class VRP:
             customers_ids.append(customer[0])
             customers_prices.append(customer[1])
 
-        if self.code == '005':
-            starting_position: Customer = Customer.objects.filter(
-                customer_id='chilgok').first()  # TODO 마이그레이션 시 칠곡 어떻게 할 지 풀어야함
-        else:
-            starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
-
-        # starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
+        starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
         customers_ids.insert(0, starting_position.id)
         customers_prices.insert(0, 0)
         total_price = sum(customers_prices) * 1.1
@@ -152,6 +146,8 @@ class VRP:
         return self.create_routes(data, manager, routing, solution)
 
     def save_route(self, routes: List[List]) -> int:
+        starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
+
         route_m = RouteM.objects.create(
             company=Company.objects.get(code=self.code),
             date=self.delivery_date,
@@ -164,10 +160,12 @@ class VRP:
 
         for route_number, route in enumerate(routes):
 
-            from_route_d: RouteD = RouteD.objects.none()
-
             for route_index, _route in enumerate(route):
                 customer = Customer.objects.get(id=self.customers[_route['index']])
+
+                if customer == starting_position:
+                    continue
+
                 orders = Order.objects.filter(Q(date=self.delivery_date), Q(company__code=self.code),
                                               Q(is_am=self.is_am), Q(customer=customer))
                 route_d = RouteD.objects.create(
@@ -181,13 +179,6 @@ class VRP:
                     order.route = route_d
                     order.save()
 
-                # if from_route_d:
-                #     json_map: str = MutualDistance.objects.filter(
-                #         Q(start=from_route_d.customer), Q(end=route_d.customer)).first().json_map
-                #     from_route_d.json_map = json_map
-                #     from_route_d.save()
-
-                # from_route_d = route_d
                 route_d.save()
 
         return route_m.id

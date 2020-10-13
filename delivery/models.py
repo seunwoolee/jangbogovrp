@@ -20,3 +20,6 @@ class RouteD(TimeStampedModel):
     route_index = models.PositiveIntegerField()
     distance = models.PositiveIntegerField(default=0)
     json_map = models.TextField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['route_number', 'route_index', 'id']
