@@ -63,6 +63,7 @@ def routeDUpdate(request: Request) -> Response:
 
     route_d = RouteD.objects.get(Q(customer__id=customer_id), Q(route_m__id=route_m_id))
     route_d.route_index = route_index
+    route_d.json_map = None
 
     if json_data:
         route_d.json_map = json_data
@@ -85,7 +86,11 @@ def routeDManualUpdate(request: Request) -> Response:
         Q(route_m__id=route_m_id), Q(route_number=to_route_number)).aggregate(max_route_index=Max('route_index'))
 
     from_route_d.route_number = to_route_number
-    from_route_d.route_index = to_max_route_index['max_route_index'] + 1
+    if to_max_route_index.get('max_route_index', None):
+        from_route_d.route_index = to_max_route_index['max_route_index'] + 1
+    else:
+        from_route_d.route_index = 1
+
     from_route_d.save()
 
     route_ds: QuerySet[RouteD] = RouteD.objects.filter(
