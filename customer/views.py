@@ -87,35 +87,6 @@ def create_customers(request: Request) -> Response:
             price=order['pay'],
             is_am=is_am,
         ).save()
-
-        # all_customer_ids.append(customer.id)
-
-    # invalid_mutual_distance_customers: List[Tuple] = []
-    # for start_customer_pk in all_customer_ids:
-    #     for end_customer_pk in all_customer_ids:
-    #         if start_customer_pk == end_customer_pk:
-    #             continue
-    #
-    #         if not MutualDistance.objects.filter(
-    #                 Q(start__id=start_customer_pk), Q(end__id=end_customer_pk)):
-    #             start = Customer.objects.get(id=start_customer_pk)
-    #             end = Customer.objects.get(id=end_customer_pk)
-    #             invalid_mutual_distance_customers.append(
-    #                 (
-    #                     {
-    #                         'customer_id': start.id,
-    #                         'lon': start.longitude,
-    #                         'lat': start.latitude,
-    #                     },
-    #                     {
-    #                         'customer_id': end.id,
-    #                         'lon': end.longitude,
-    #                         'lat': end.latitude,
-    #                     },
-    #                 )
-    #             )
-
-    # return Response(data=result, status=200) # TODO invalid_mutual_distance_customers을 던져야함
     return Response(status=200) # TODO invalid_mutual_distance_customers을 던져야함
 
 

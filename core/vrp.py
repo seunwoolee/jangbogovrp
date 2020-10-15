@@ -23,9 +23,6 @@ class VRP:
         self.customers: list = []
         self.is_am = is_am
 
-    def calculate_distance(self, x1, y1, x2, y2) -> float:
-        return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-
     def create_data_model(self):
         data = {}
         customers: Customers = list(Order.objects.values_list('customer').filter(
@@ -56,10 +53,7 @@ class VRP:
                 start_customer: Customer = Customer.objects.get(id=start)
                 end_customer: Customer = Customer.objects.get(id=end)
                 distance: int = round(geodesic((start_customer.latitude, start_customer.longitude),
-                                           (end_customer.latitude, end_customer.longitude)).meters)
-                # distance: float = self.calculate_distance(
-                #     start_customer.latitude, start_customer.longitude, end_customer.latitude, end_customer.longitude)
-                # distance: int = MutualDistance.objects.filter(Q(start__id=start), Q(end__id=end)).first().distance
+                                               (end_customer.latitude, end_customer.longitude)).meters)
                 from_to_arr.append(distance)
             from_to_arrs.append(from_to_arr)
 
