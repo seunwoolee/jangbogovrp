@@ -21,7 +21,6 @@ def deliveries(request: Request) -> Response:
     company: Company = user.company_info.first()
     route_m = RouteM.objects.filter(Q(company=company), Q(date__gte=start_date), Q(date__lte=end_date))
     serializer = RouteMSerializer(route_m, many=True)
-
     return Response(data=serializer.data, status=200)
 
 

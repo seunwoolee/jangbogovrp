@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from company.models import Company
 from customer.models import Order, Customer, MutualDistance
+from delivery.models import RouteM
 from mssql_service import ERPDB
 from mysql_service import DB
 
@@ -41,18 +42,8 @@ def create_customers(request: Request) -> Response:
     company: Company = user.company_info.first()
     erp_db = ERPDB()
     orders: list = erp_db.get_order_data(company.code, is_am=is_am)
-    if user.username == 'chilgok':
-        starting_position: Customer = Customer.objects.filter(customer_id='chilgok').first()  # TODO 하드코딩
-    else:
-        starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
 
-    all_customer_ids: list = [starting_position.id]
-
-    Order.objects.filter(
-        company=company,
-        date=date.today(),
-        is_am=is_am
-    ).delete()
+    RouteM.objects.filter(Q(company=company), Q(is_am=is_am), Q(date=date.today())).delete()
 
     for order in orders:
         if not order['lat'] or not order['lon']:
@@ -60,8 +51,8 @@ def create_customers(request: Request) -> Response:
 
     for order in orders:
 
-        if order['pay'] < 0: # TODO 김진석 과장 문의(외상 마이너스 값 처리)
-            continue
+        if order['pay'] < 0:
+            order['pay'] = abs(order['pay'])
 
         customer = Customer.objects.filter(customer_id=order['guestId']).first()
         if customer:
@@ -87,7 +78,7 @@ def create_customers(request: Request) -> Response:
             price=order['pay'],
             is_am=is_am,
         ).save()
-    return Response(status=200) # TODO invalid_mutual_distance_customers을 던져야함
+    return Response(status=200)
 
 
 @api_view(['POST'])
