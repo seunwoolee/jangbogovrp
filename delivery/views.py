@@ -56,19 +56,22 @@ def routeD(request: Request) -> Response:
 
 @api_view(['patch'])
 def routeDUpdate(request: Request) -> Response:
-    route_m_id = request.data.get('routeM', '')
-    customer_id = request.data.get('customerId', '')
-    route_index = request.data.get('index', '')
-    json_data = request.data.get('jsonData', '')
+    routes: list = request.data
 
-    route_d = RouteD.objects.get(Q(customer__id=customer_id), Q(route_m__id=route_m_id))
-    route_d.route_index = route_index
-    route_d.json_map = None
+    for route in routes:
+        route_m_id = route.get('routeM', '')
+        customer_id = route.get('customerId', '')
+        route_index = route.get('index', '')
+        json_data = route.get('jsonData', '')
 
-    if json_data:
-        route_d.json_map = json_data
+        route_d = RouteD.objects.get(Q(customer__id=customer_id), Q(route_m__id=route_m_id))
+        route_d.route_index = route_index
+        route_d.json_map = None
 
-    route_d.save()
+        if json_data:
+            route_d.json_map = json_data
+
+        route_d.save()
     return Response(status=200)
 
 
