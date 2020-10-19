@@ -25,10 +25,8 @@ class VRP:
 
     def create_data_model(self):
         data = {}
-        customers: Customers = list(Order.objects.values_list('customer').filter(
-            Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=self.is_am))
-                                    .annotate(group_price=Sum('price')))
 
+        customers: Customers = self.create_customer_prices()
         customers_ids: list = []
         customers_prices: list = []
 
@@ -139,16 +137,26 @@ class VRP:
 
         return self.create_routes(data, manager, routing, solution)
 
+    def create_customer_prices(self) -> List[Tuple]:
+        return list(Order.objects.values_list('customer').filter(
+            Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=self.is_am))
+                                    .annotate(group_price=Sum('price')))
+
     def save_route(self, routes: List[List]) -> int:
         starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
+        customers: Customers = self.create_customer_prices()
+        total_price = 0
+
+        for customer_price in customers:
+            total_price += customer_price[1]
 
         route_m = RouteM.objects.create(
             company=Company.objects.get(code=self.code),
             date=self.delivery_date,
             is_am=self.is_am,
             count_car=self.car_count,
-            price=100000,  # TODO 하드코딩
-            count_location=len(self.customers)
+            price=total_price,  # TODO 하드코딩
+            count_location=len(customers)
         )
         route_m.save()
 
