@@ -63,6 +63,7 @@ def routeDUpdate(request: Request) -> Response:
         customer_id = route.get('customerId', '')
         route_index = route.get('index', '')
         json_data = route.get('jsonData', '')
+        total_distance = route.get('totalDistance', '')
 
         route_d = RouteD.objects.get(Q(customer__id=customer_id), Q(route_m__id=route_m_id))
         route_d.route_index = route_index
@@ -70,6 +71,11 @@ def routeDUpdate(request: Request) -> Response:
 
         if json_data:
             route_d.json_map = json_data
+
+        if total_distance:
+            route_d.distance = total_distance
+        else:
+            route_d.distance = 0
 
         route_d.save()
     return Response(status=200)
