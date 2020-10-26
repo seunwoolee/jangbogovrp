@@ -54,7 +54,7 @@ def routeD(request: Request) -> Response:
     return Response(data=serializer.data, status=200)
 
 
-@api_view(['patch'])
+@api_view(['PATCH'])
 def routeDUpdate(request: Request) -> Response:
     routes: list = request.data
 

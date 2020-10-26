@@ -25,6 +25,15 @@ def preview_order(request: Request) -> Response:
     return Response(data=result, status=200)
 
 
+@api_view(['PATCH'])
+def update_course_number(request: Request) -> Response:
+    guest_id = request.data.get('guest_id', '')
+    to_course_number = request.data.get('to_course_number', '')
+    erp_db = ERPDB()
+    erp_db.update_customer_course_number(guest_id, to_course_number)
+    return Response(status=200)
+
+
 @api_view(['GET'])
 def save_geolocation(request: Request) -> Response:
     order_number = request.query_params.get('orderNumber', '')

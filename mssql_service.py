@@ -64,6 +64,7 @@ class ERPDB(MssqlMixin):
             temp_dict['guestId'] = row[6]
             temp_dict['meridiemType'] = "0"
             temp_dict['deliveryDate'] = row[22]
+            temp_dict['courseNumber'] = row[31]
             result.append(temp_dict)
         return result
 
@@ -95,5 +96,10 @@ class ERPDB(MssqlMixin):
 
     def update_geolocation(self, order_number: str, lat: str, lon: str):
         sql = f"UPDATE table_OrderSheet SET DevX='{lon}', DevY='{lat}' WHERE SaCode='{order_number}'"
+        self.cursor.execute(sql)
+        self.conn.commit()
+
+    def update_customer_course_number(self, guest_id: str, to_course_number: int):
+        sql = f"UPDATE table_Customer SET CourseNum={to_course_number} WHERE CtCode='{guest_id}'"
         self.cursor.execute(sql)
         self.conn.commit()
