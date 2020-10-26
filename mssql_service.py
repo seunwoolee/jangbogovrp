@@ -21,23 +21,6 @@ class MssqlMixin:
 
 class ERPDB(MssqlMixin):
     def get_order_data(self, company_code: str = '003', is_am: bool = True) -> list:
-        """
-        프로시저 명 : Iregen_OrderSheet_Ready_List_Vehicle
-
-        매개변수들 :
-        $CRUN		= "MONITER"; -> 필요없어보임
-        $CorpCode	= "10001";//1001
-        $StartDDay	= '2020-09-03';
-        $EndDDay	= '2020-09-03';
-        $pStCode	= '003';
-        $StCode		= '003';	//"0006"
-        $IsMorning	= '1';
-
-        :param company_code: 회사 코드(월배점 003)
-        :param is_am: (오전, 오후) 오전(a) = 1, 오후면(b) = 2
-        :return: order data list
-        """
-
         today = date.today().strftime('%Y-%m-%d')
         CRUN = " "
         CorpCode = "10001"
@@ -45,8 +28,6 @@ class ERPDB(MssqlMixin):
         EndDDay = today
         pStCode = company_code
         StCode = company_code
-        # pStCode = '003'
-        # StCode = '003'
         IsMorning = '1'
 
         if is_am == False:
@@ -57,10 +38,10 @@ class ERPDB(MssqlMixin):
         self.cursor.callproc('Iregen_OrderSheet_Ready_List_Vehicle',
                              (CRUN, CorpCode, StartDDay, EndDDay, pStCode, StCode, IsMorning))
 
-        for _ in self.cursor:  # 첫번째 프로시저 결과값 PASS
-            pass
-
-        self.cursor.nextset()
+        # for _ in self.cursor:  # 첫번째 프로시저 결과값 PASS
+        #     pass
+        #
+        # self.cursor.nextset()
 
         for i, row in enumerate(self.cursor):
             temp_dict = {}
