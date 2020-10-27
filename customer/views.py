@@ -56,7 +56,10 @@ def create_customers(request: Request) -> Response:
 
     for order in orders:
         if not order['lat'] or not order['lon']:
-            return Response(data=order, status=400)
+            return Response(data={"message": "수집되지 않은 좌표가 있습니다."}, status=400)
+
+        if order['courseNumber'] == 0 or order['courseNumber'] is None:
+            return Response(data={"message": "코스번호가 없는 거래처가 있습니다."}, status=400)
 
     for order in orders:
 
@@ -68,6 +71,7 @@ def create_customers(request: Request) -> Response:
             customer.address = order['address']
             customer.latitude = order['lat']
             customer.longitude = order['lon']
+            customer.course_number = order['courseNumber']
             customer.save()
         else:
             customer = Customer.objects.create(
@@ -75,7 +79,8 @@ def create_customers(request: Request) -> Response:
                 name=order['name'],
                 address=order['address'],
                 latitude=order['lat'],
-                longitude=order['lon']
+                longitude=order['lon'],
+                course_number=order['courseNumber']
             )
             customer.save()
 
@@ -87,6 +92,7 @@ def create_customers(request: Request) -> Response:
             price=order['pay'],
             is_am=is_am,
         ).save()
+
     return Response(status=200)
 
 

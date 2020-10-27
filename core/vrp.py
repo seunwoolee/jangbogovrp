@@ -4,7 +4,7 @@ from geopy.distance import geodesic
 
 from typing import Dict, Union, List, Tuple
 
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, QuerySet
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 
@@ -37,7 +37,7 @@ class VRP:
         starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
         customers_ids.insert(0, starting_position.id)
         customers_prices.insert(0, 0)
-        total_price = sum(customers_prices) * 1.1
+        total_price = sum(customers_prices) * 1.2
         each_price = round(total_price / self.car_count)
         from_to_arrs: list = []
 
@@ -65,7 +65,6 @@ class VRP:
         return data
 
     def create_routes(self, data, manager, routing, solution) -> List[List]:
-        """Prints solution on console."""
         result: list = []
         max_route_distance = 0
         for vehicle_id in range(data['num_vehicles']):
@@ -140,7 +139,7 @@ class VRP:
     def create_customer_prices(self) -> List[Tuple]:
         return list(Order.objects.values_list('customer').filter(
             Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=self.is_am))
-                                    .annotate(group_price=Sum('price')))
+                                    .annotate(group_price=Sum('price')).order_by('customer__course_number'))
 
     def save_route(self, routes: List[List]) -> int:
         starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
@@ -155,7 +154,7 @@ class VRP:
             date=self.delivery_date,
             is_am=self.is_am,
             count_car=self.car_count,
-            price=total_price,  # TODO 하드코딩
+            price=total_price,
             count_location=len(customers)
         )
         route_m.save()
@@ -182,5 +181,41 @@ class VRP:
                     order.save()
 
                 route_d.save()
+
+        return route_m.id
+
+    def save_route_manual(self) -> int:
+        customers: Customers = self.create_customer_prices()
+        total_price = 0
+
+        for customer_price in customers:
+            total_price += customer_price[1]
+
+        route_m = RouteM.objects.create(
+            company=Company.objects.get(code=self.code),
+            date=self.delivery_date,
+            is_am=self.is_am,
+            count_car=self.car_count,
+            price=total_price,
+            count_location=len(customers)
+        )
+        route_m.save()
+
+        for i, customer_id in enumerate(customers):
+            orders = Order.objects.filter(Q(date=self.delivery_date), Q(company__code=self.code),
+                                          Q(is_am=self.is_am), Q(customer_id=customer_id[0]))
+            customer = Customer.objects.get(id=customer_id[0])
+            route_d = RouteD.objects.create(
+                distance=0,
+                route_m=route_m,
+                customer=customer,
+                route_number=customer.course_number,
+                route_index=i + 1,
+            )
+            for order in orders:
+                order.route = route_d
+                order.save()
+
+            route_d.save()
 
         return route_m.id

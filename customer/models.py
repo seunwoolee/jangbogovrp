@@ -12,6 +12,7 @@ class Customer(TimeStampedModel):
     address = models.CharField(max_length=255)
     latitude = models.DecimalField(max_digits=20, decimal_places=10)
     longitude = models.DecimalField(max_digits=20, decimal_places=10)
+    course_number = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.name
