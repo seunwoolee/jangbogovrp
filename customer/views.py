@@ -34,11 +34,11 @@ def update_course_number(request: Request) -> Response:
     return Response(status=200)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def save_geolocation(request: Request) -> Response:
-    order_number = request.query_params.get('orderNumber', '')
-    lat = request.query_params.get('lat', '')
-    lon = request.query_params.get('lon', '')
+    order_number = request.data.get('orderNumber', '')
+    lat = request.data.get('lat', '')
+    lon = request.data.get('lon', '')
     erp_db = ERPDB()
     erp_db.update_geolocation(order_number, lat, lon)
     return Response(data=[], status=200)

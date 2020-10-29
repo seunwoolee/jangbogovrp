@@ -37,7 +37,7 @@ def create_route_manual(request: Request) -> Response:
 
     user: User = request.user
     code: str = user.company_info.first().code
-    vrp: VRP = VRP(code, delivery_date, is_am, 20)  # TODO 하드코딩
+    vrp: VRP = VRP(code, delivery_date, is_am, 0)  # TODO 하드코딩
     route_m_id: int = vrp.save_route_manual()
     max_route_number = RouteD.objects.filter(route_m__id=route_m_id).aggregate(max_route_number=Max('route_number'))
     result = {'route_m_id': route_m_id, **max_route_number}

@@ -139,7 +139,7 @@ class VRP:
     def create_customer_prices(self) -> List[Tuple]:
         return list(Order.objects.values_list('customer').filter(
             Q(date=self.delivery_date), Q(company__code=self.code), Q(is_am=self.is_am))
-                                    .annotate(group_price=Sum('price')).order_by('customer__course_number'))
+                    .annotate(group_price=Sum('price')).order_by('customer__course_number'))
 
     def save_route(self, routes: List[List]) -> int:
         starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
