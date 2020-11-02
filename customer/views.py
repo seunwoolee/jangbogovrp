@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from company.models import Company
 from customer.models import Order, Customer, MutualDistance
+from customer.serializers import OrderSerializer
 from delivery.models import RouteM
 from mssql_service import ERPDB
 from mysql_service import DB
@@ -107,3 +108,12 @@ def save_mutual_distance(request: Request) -> Response:
     temp['json_map'] = request.data.get('jsonMap', '')
     MutualDistance.objects.create(**temp).save()
     return Response(data=[], status=200)
+
+
+@api_view(['GET'])
+def get_orders(request: Request) -> Response:
+    order_ids: list = request.query_params.getlist('order_ids[]', [])
+    date: str = request.query_params.get('date', '')
+    erp_db = ERPDB()
+    result = erp_db.get_detail_orders("', '".join(order_ids), date)
+    return Response(data=result, status=200)

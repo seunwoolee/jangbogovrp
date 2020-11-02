@@ -16,7 +16,7 @@ class MssqlMixin:
         self.conn: pymssql.Connection = pymssql.connect(host=self._HOST, user=self._USER,
                                                         password=self._PASS,
                                                         database=self._NAME, charset='utf8')
-        self.cursor: pymssql.Cursor = self.conn.cursor()
+        self.cursor: pymssql.Cursor = self.conn.cursor(as_dict=True)
 
 
 class ERPDB(MssqlMixin):
@@ -46,25 +46,25 @@ class ERPDB(MssqlMixin):
         for i, row in enumerate(self.cursor):
             temp_dict = {}
             temp_dict['id'] = i + 1
-            temp_dict['orderNumber'] = row[0]
+            temp_dict['orderNumber'] = row['SaCode']
             temp_dict['locationId'] = "3"
             temp_dict['deliveryDate'] = i + 1
             temp_dict['no'] = i + 1
             temp_dict['jusoSubid'] = "1"
-            temp_dict['lat'] = row[30]
-            temp_dict['lon'] = row[29]
+            temp_dict['lat'] = row['DevY']
+            temp_dict['lon'] = row['DevX']
             temp_dict['isNew'] = "1"
             temp_dict['isShop'] = "0"
             temp_dict['flag'] = "1"
             temp_dict['isRoad'] = "n"
-            temp_dict['pay'] = row[12]
-            temp_dict['address'] = row[23].strip()
+            temp_dict['pay'] = row['TotalSalePrice']
+            temp_dict['address'] = row['Address1'].strip()
             temp_dict['guestTel'] = ""
-            temp_dict['name'] = row[7]
-            temp_dict['guestId'] = row[6]
+            temp_dict['name'] = row['JoinUserName']
+            temp_dict['guestId'] = row['CtCode']
             temp_dict['meridiemType'] = "0"
-            temp_dict['deliveryDate'] = row[22]
-            temp_dict['courseNumber'] = row[31]
+            temp_dict['deliveryDate'] = row['DevDDay']
+            temp_dict['courseNumber'] = row['CourseNum']
             result.append(temp_dict)
         return result
 
@@ -103,3 +103,18 @@ class ERPDB(MssqlMixin):
         sql = f"UPDATE table_Customer SET CourseNum={to_course_number} WHERE CtCode='{guest_id}'"
         self.cursor.execute(sql)
         self.conn.commit()
+
+    def get_detail_orders(self, orderNumbers: str, date_str: str) -> list:
+        sql = f"select table_ordersheet.SaCode as orderNumber, " \
+              f"table_ordersheet.JoinUserName as name, " \
+              f"table_ordersheet.DevDDay as day, " \
+              f"tOSP.ProductName as productName, " \
+              f"tOSP.TotalStock as count, " \
+              f"tOSP.SaleTotal as price " \
+              f"from table_ordersheet " \
+              f"LEFT OUTER JOIN table_OrderSheet_Product tOSP " \
+              f"on table_OrderSheet.CorpCode = tOSP.CorpCode and table_OrderSheet.SaCode = tOSP.SaCode " \
+              f"where table_ordersheet.DevDDay = '{date_str}' and table_OrderSheet.SaCode in ('{orderNumbers}') " \
+              f"order by DateKey desc "
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
