@@ -106,10 +106,10 @@ def routeDManualUpdate(request: Request) -> Response:
     from_route_d.save()
 
     if is_duplicated:
-        from_route_ds: QuerySet[RouteD] = RouteD.objects.exclude(
-            Q(id=from_route_d.id)).filter(Q(route_m__id=route_m_id),
-                                          Q(customer__latitude=from_route_d.customer.latitude),
-                                          Q(customer__longitude=from_route_d.customer.longitude))
+        from_route_ds: QuerySet[RouteD] = RouteD.objects \
+            .exclude(Q(id=from_route_d.id)) \
+            .filter(Q(route_m__id=route_m_id), Q(customer__latitude=from_route_d.customer.latitude),
+                    Q(customer__longitude=from_route_d.customer.longitude), ~Q(route_number=from_route_d.route_number))
 
         next_route_index = from_route_d.route_index
 
