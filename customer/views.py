@@ -48,6 +48,7 @@ def save_geolocation(request: Request) -> Response:
 @api_view(['POST'])
 def create_customers(request: Request) -> Response:
     is_am = request.data.get('isAm', True)
+    is_auto = request.data.get('isAuto', False)
     user: User = request.user
     company: Company = user.company_info.first()
     erp_db = ERPDB()
@@ -59,6 +60,9 @@ def create_customers(request: Request) -> Response:
         if not order['lat'] or not order['lon']:
             return Response(data={"message": "수집되지 않은 좌표가 있습니다."}, status=400)
 
+        if is_auto:
+            continue
+
         if order['courseNumber'] == 0 or order['courseNumber'] is None:
             return Response(data={"message": "코스번호가 없는 거래처가 있습니다."}, status=400)
 
@@ -66,6 +70,9 @@ def create_customers(request: Request) -> Response:
 
         if order['pay'] < 0:
             order['pay'] = abs(order['pay'])
+
+        if order['courseNumber'] is None:
+            order['courseNumber'] = 0
 
         customer = Customer.objects.filter(customer_id=order['guestId']).first()
         if customer:
