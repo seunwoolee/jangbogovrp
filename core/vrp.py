@@ -34,7 +34,10 @@ class VRP:
             customers_ids.append(customer[0])
             customers_prices.append(customer[1])
 
-        starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
+        starting_position: Customer = Customer.objects.filter(customer_id=self.code).first()
+        if not starting_position:
+            starting_position: Customer = Customer.objects.filter(name='칠곡배송센터').first()  # TODO 하드코딩
+
         customers_ids.insert(0, starting_position.id)
         customers_prices.insert(0, 0)
         total_price = sum(customers_prices) * 1.2
@@ -142,8 +145,11 @@ class VRP:
                     .annotate(group_price=Sum('price')).order_by('customer__course_number'))
 
     def save_route(self, routes: List[List]) -> int:
-        starting_position: Customer = Customer.objects.filter(customer_id='admin').first()  # TODO 하드코딩
-        customers: Customers = self.create_customer_prices()
+        starting_position: Customer = Customer.objects.filter(customer_id=self.code).first()
+        if not starting_position:
+            starting_position: Customer = Customer.objects.filter(name='칠곡배송센터').first()  # TODO 하드코딩
+
+        customers: List[Tuple] = self.create_customer_prices()
         total_price = 0
 
         for customer_price in customers:
