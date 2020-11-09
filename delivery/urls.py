@@ -1,6 +1,7 @@
 from django.urls import path, include
 
-from delivery.views import deliveries, map_groups, maps, routeD, routeDUpdate, routeDManualUpdate
+from delivery.views import deliveries, map_groups, maps, routeD, routeDUpdate, routeDManualUpdate, add_routeD, \
+    delete_routeD
 
 urlpatterns = [
     path('deliveries/', deliveries, name='deliveries'),
@@ -9,4 +10,6 @@ urlpatterns = [
     path('routeD/', routeD, name='routeD'),
     path('routeDUpdate/', routeDUpdate, name='routeDUpdate'),
     path('routeDManualUpdate/', routeDManualUpdate, name='routeDManualUpdate'),
+    path('add_routeD/', add_routeD, name='add_routeD'),
+    path('delete_routeD/', delete_routeD, name='delete_routeD'),
 ]

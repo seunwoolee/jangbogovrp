@@ -34,3 +34,15 @@ class CustomerTest(TestCase):
         response: Response = self.drf_client.get('/customer/get_orders/', data=data)
         self.assertIsInstance(response.data, list)
         self.assertEqual(response.status_code, 200)
+
+    def test_get_customer(self):
+        data = {'customerCode': '574845'}
+        response: Response = self.drf_client.get('/customer/get_customer/', data=data)
+        self.assertIsInstance(response.data, dict)
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_customer(self):
+        data = {'customerCode': '574845'}
+        response: Response = self.drf_client.get('/customer/get_customer/', data=data)
+        self.assertIsInstance(response.data, dict)
+        self.assertEqual(response.status_code, 200)

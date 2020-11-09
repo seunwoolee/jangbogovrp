@@ -124,3 +124,11 @@ def get_orders(request: Request) -> Response:
     erp_db = ERPDB()
     result = erp_db.get_detail_orders("', '".join(order_ids), date)
     return Response(data=result, status=200)
+
+
+@api_view(['GET'])
+def get_customer(request: Request) -> Response:
+    customer_code: str = request.query_params.get('customerCode', '')
+    erp_db = ERPDB()
+    result = erp_db.get_customer(customer_code)
+    return Response(data=result, status=200)

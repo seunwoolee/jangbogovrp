@@ -118,3 +118,8 @@ class ERPDB(MssqlMixin):
               f"order by DateKey desc "
         self.cursor.execute(sql)
         return self.cursor.fetchall()
+
+    def get_customer(self, customer_code: str) -> dict:
+        sql = f"select * FROM table_Customer WHERE CtCode = '{customer_code}'"
+        self.cursor.execute(sql)
+        return self.cursor.fetchone()

@@ -1,3 +1,4 @@
+import requests
 from django.contrib.auth.models import User
 from django.db.models import Q, Max, QuerySet
 from django.shortcuts import render
@@ -8,8 +9,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from company.models import Company
+from customer.models import Customer
 from delivery.models import RouteM, RouteD
 from delivery.serializers import RouteMSerializer, RouteMDSerializer, RouteDSerializer, RouteDOrderSerializer
+from mssql_service import ERPDB
 from mysql_service import DB
 
 
@@ -128,4 +131,62 @@ def routeDManualUpdate(request: Request) -> Response:
         route_d.route_index -= duplicated_count
         route_d.save()
 
+    return Response(status=200)
+
+
+@api_view(['POST'])
+def add_routeD(request: Request) -> Response:
+    customer_code: str = request.data.get('customerCode', '')
+    route_number: str = request.data.get('routeNumber', '')
+    route_m_id: int = request.data.get('routeM', '')
+
+    try:
+        customer = Customer.objects.get(customer_id=customer_code)
+    except Customer.DoesNotExist:
+        erp_db = ERPDB()
+        result = erp_db.get_customer(customer_code)
+        url = "https://apis.openapi.sk.com/tmap/geo/fullAddrGeo?version=1&format=json&callback=result"
+        params = {
+            'fullAddr': result['Address1'],
+            'coordType': "WGS84GEO",
+            'appKey': "0de9ecde-b87c-404c-b7f8-be4ed7b85d4f",
+        }
+        response = requests.get(url, params)
+        data = response.json()
+        coordinate_info = data['coordinateInfo']
+        coordinate = coordinate_info['coordinate'][0]
+        if coordinate['lat'] and coordinate['lon']:
+            lat = coordinate['lat']
+            lon = coordinate['lon']
+        else:
+            lat = coordinate['newLat']
+            lon = coordinate['newLon']
+
+        customer = Customer.objects.create(
+            customer_id=result['CtCode'],
+            name=result['JoinUserName'],
+            address=result['Address1'],
+            course_number=result['CourseNum'],
+            latitude=lat,
+            longitude=lon
+        )
+        customer.save()
+
+    route_m = RouteM.objects.get(id=route_m_id)
+    max_route_index = RouteD.objects.filter(Q(route_m=route_m), Q(route_number=route_number)).aggregate(index=Max('route_index'))
+
+    RouteD.objects.create(
+        route_m=route_m,
+        route_number=route_number,
+        route_index=max_route_index['index'] + 1,
+        customer=customer
+    ).save()
+
+    return Response(status=200)
+
+
+@api_view(['DELETE'])
+def delete_routeD(request: Request) -> Response:
+    route_d_id: int = request.data.get('routeD', '')
+    RouteD.objects.get(id=route_d_id).delete()
     return Response(status=200)
