@@ -22,12 +22,15 @@ def get_company(request: Request) -> Response:
 def kakao_sign_up(request: Request) -> Response:
     username = request.data.get('username', '')
     email = request.data.get('email', '')
+    user: User = User.objects.filter(username=username).first()
 
-    user = User.objects.create(
-        username=username,
-        email=email
-    )
-    user.save()
-    Token.objects.create(user=user).save()
+    if not user:
+        user = User.objects.create(
+            username=username,
+            email=email
+        )
+        user.save()
+        Token.objects.create(user=user).save()
+
     serializer = UserSerializer(user)
     return Response(data=serializer.data, status=200)
