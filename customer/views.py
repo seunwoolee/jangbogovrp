@@ -104,7 +104,7 @@ def create_customers(request: Request) -> Response:
             customer.save()
         else:
             customer_id = order['guestId']
-            count_same_customer = len(Customer.objects.filter(customer_id=order['guestId']))
+            count_same_customer = len(Customer.objects.filter(customer_id__istartswith=order['guestId']))
             if count_same_customer > 0:
                 customer_id += '_' + str(count_same_customer)
 
