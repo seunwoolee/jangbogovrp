@@ -74,16 +74,42 @@ def create_customers(request: Request) -> Response:
         if order['courseNumber'] is None:
             order['courseNumber'] = 0
 
-        customer = Customer.objects.filter(customer_id=order['guestId']).first()
+        # customer = Customer.objects.filter(customer_id=order['guestId']).first()
+        # if customer:
+        #     customer.address = order['address']
+        #     customer.latitude = order['lat']
+        #     customer.longitude = order['lon']
+        #     customer.course_number = order['courseNumber']
+        #     customer.save()
+        # else:
+        #     customer = Customer.objects.create(
+        #         customer_id=order['guestId'],
+        #         name=order['name'],
+        #         address=order['address'],
+        #         latitude=order['lat'],
+        #         longitude=order['lon'],
+        #         course_number=order['courseNumber']
+        #     )
+        #     customer.save()
+
+        customer = Customer.objects.filter(
+            Q(customer_id=order['guestId']),
+            Q(latitude=order['lat']),
+            Q(longitude=order['lon']),
+        ).first()
+
         if customer:
-            customer.address = order['address']
-            customer.latitude = order['lat']
-            customer.longitude = order['lon']
             customer.course_number = order['courseNumber']
+            customer.name = order['name']
             customer.save()
         else:
+            customer_id = order['guestId']
+            count_same_customer = len(Customer.objects.filter(customer_id=order['guestId']))
+            if count_same_customer > 0:
+                customer_id += '_' + str(count_same_customer)
+
             customer = Customer.objects.create(
-                customer_id=order['guestId'],
+                customer_id=customer_id,
                 name=order['name'],
                 address=order['address'],
                 latitude=order['lat'],
