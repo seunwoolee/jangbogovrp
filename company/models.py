@@ -15,3 +15,8 @@ class Company(TimeStampedModel):
 
     def __str__(self):
         return self.name
+
+
+class Driver(TimeStampedModel):
+    name = models.CharField(max_length=30)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='driver', null=True, blank=True)
