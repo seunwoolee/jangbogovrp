@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from company.models import Company
+from company.models import Company, Driver
 from customer.models import Customer
 from delivery.models import RouteM, RouteD
 from delivery.serializers import RouteMSerializer, RouteMDSerializer, RouteDSerializer, RouteDOrderSerializer
@@ -189,4 +189,15 @@ def add_routeD(request: Request) -> Response:
 def delete_routeD(request: Request) -> Response:
     route_d_id: int = request.data.get('routeD', '')
     RouteD.objects.get(id=route_d_id).delete()
+    return Response(status=200)
+
+
+@api_view(['POST'])
+def add_driver_to_routeD(request: Request) -> Response:
+    driver_id: int = request.data.get('driver_id', '')
+    route_d_id: int = request.data.get('route_d_id', '')
+    route_d = RouteD.objects.get(id=route_d_id)
+    driver = Driver.objects.get(id=driver_id)
+    route_d.driver = driver
+    route_d.save()
     return Response(status=200)

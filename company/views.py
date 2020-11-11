@@ -6,7 +6,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from company.models import Company, Driver
-from company.serializers import CompanySerializer, UserSerializer
+from company.serializers import CompanySerializer, UserSerializer, DriverSerializer
 
 
 @api_view(['GET'])
@@ -48,7 +48,7 @@ def create_driver(request: Request) -> Response:
 
     Token.objects.create(user=user).save()
 
-    Driver.objects.create(user=user,name=username).save()
+    Driver.objects.create(user=user, name=username).save()
 
     return Response(status=200)
 
@@ -59,3 +59,10 @@ def delete_driver(request: Request) -> Response:
     driver = Driver.objects.get(id=driver_id)
     driver.user.delete()
     return Response(status=200)
+
+
+@api_view(['GET'])
+def get_drivers(request: Request) -> Response:
+    drivers = Driver.objects.all()
+    serializer = DriverSerializer(drivers, many=True)
+    return Response(data=serializer.data, status=200)

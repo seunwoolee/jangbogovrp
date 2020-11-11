@@ -1,7 +1,7 @@
 from django.db import models
 
 from core.models import TimeStampedModel
-from company.models import Company
+from company.models import Company, Driver
 
 
 class RouteM(TimeStampedModel):
@@ -20,6 +20,7 @@ class RouteD(TimeStampedModel):
     route_index = models.PositiveIntegerField()
     distance = models.PositiveIntegerField(default=0)
     json_map = models.TextField(null=True, blank=True)
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE, related_name='+', null=True, blank=True, default=None)
 
     class Meta:
         ordering = ['route_number', 'route_index', 'id']

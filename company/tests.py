@@ -45,3 +45,6 @@ class CompanyTest(TestCase):
         data = {'name': '이승우'}
         response: Response = self.drf_client.post('/company/create_driver/', data)
         self.assertEqual(response.status_code, 200)
+
+        response: Response = self.drf_client.get('/company/get_drivers/')
+        self.assertEqual(response.status_code, 200)
