@@ -44,6 +44,7 @@ def create_driver(request: Request) -> Response:
         return Response(data={"message": "동일한 이름의 기사가 있습니다. 다른 이름으로 저장해주세요"}, status=400)
 
     user = User.objects.create(username=username)
+    user.set_password('123')
     user.save()
 
     Token.objects.create(user=user).save()
