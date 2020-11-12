@@ -20,7 +20,7 @@ class RouteD(TimeStampedModel):
     route_index = models.PositiveIntegerField()
     distance = models.PositiveIntegerField(default=0)
     json_map = models.TextField(null=True, blank=True)
-    driver = models.ForeignKey(Driver, on_delete=models.CASCADE, related_name='+', null=True, blank=True, default=None)
+    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, related_name='+', null=True, blank=True, default=None)
 
     class Meta:
         ordering = ['route_number', 'route_index', 'id']
