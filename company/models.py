@@ -19,4 +19,5 @@ class Company(TimeStampedModel):
 
 class Driver(TimeStampedModel):
     name = models.CharField(max_length=30)
+    course_number = models.PositiveSmallIntegerField(default=1)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='driver', null=True, blank=True)

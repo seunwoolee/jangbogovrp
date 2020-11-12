@@ -74,6 +74,8 @@ def routeDUpdate(request: Request) -> Response:
 
         if json_data:
             route_d.json_map = json_data
+            driver = Driver.objects.filter(course_number=route_d.route_number).first()
+            route_d.driver = driver
 
         if total_distance:
             route_d.distance = total_distance
