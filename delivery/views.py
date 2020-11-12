@@ -74,7 +74,15 @@ def routeDUpdate(request: Request) -> Response:
 
         if json_data:
             route_d.json_map = json_data
-            driver = Driver.objects.filter(course_number=route_d.route_number).first()
+            user = request.user
+            company: Company = user.company_info.first()
+
+            # TODO 하드코딩
+            if company.code == '011':
+                driver = Driver.objects.filter(Q(course_number=route_d.route_number), Q(company=company)).first()
+            else:
+                driver = Driver.objects.filter(course_number=route_d.route_number).first()
+
             route_d.driver = driver
 
         if total_distance:
@@ -175,7 +183,8 @@ def add_routeD(request: Request) -> Response:
         customer.save()
 
     route_m = RouteM.objects.get(id=route_m_id)
-    max_route_index = RouteD.objects.filter(Q(route_m=route_m), Q(route_number=route_number)).aggregate(index=Max('route_index'))
+    max_route_index = RouteD.objects.filter(Q(route_m=route_m), Q(route_number=route_number)).aggregate(
+        index=Max('route_index'))
 
     RouteD.objects.create(
         route_m=route_m,

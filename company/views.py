@@ -40,6 +40,7 @@ def kakao_sign_up(request: Request) -> Response:
 def create_driver(request: Request) -> Response:
     username = request.data.get('name', '')
     course_number = request.data.get('courseNumber', '')
+    company_code = request.data.get('company', '')
 
     if User.objects.filter(username=username).first():
         return Response(data={"message": "동일한 이름의 기사가 있습니다. 다른 이름으로 저장해주세요"}, status=400)
@@ -50,14 +51,19 @@ def create_driver(request: Request) -> Response:
 
     Token.objects.create(user=user).save()
 
-    Driver.objects.create(
+    driver = Driver.objects.create(
         user=user,
         name=username,
         course_number=course_number
-    ).save()
+    )
+
+    if company_code != '':
+        company = Company.objects.get(code=company_code)
+        driver.company = company
+
+    driver.save()
 
     return Response(status=200)
-
 
 @api_view(['DELETE'])
 def delete_driver(request: Request) -> Response:

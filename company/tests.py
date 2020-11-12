@@ -29,20 +29,24 @@ class CompanyTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_driver(self):
-        data = {'name': '이승우'}
+        data = {'name': '이승우', 'courseNumber': 1}
         response: Response = self.drf_client.post('/company/create_driver/', data)
         self.assertEqual(response.status_code, 200)
 
-        data = {'name': '이승우'}
+        data = {'name': '이승우', 'courseNumber': 1}
         response: Response = self.drf_client.post('/company/create_driver/', data)
         self.assertEqual(response.status_code, 400)
+
+        data = {'name': '이승우반야월', 'courseNumber': 1, 'company_code': '011'}
+        response: Response = self.drf_client.post('/company/create_driver/', data)
+        self.assertEqual(response.status_code, 200)
 
         driver = Driver.objects.filter().first()
         data = {'id': driver.id}
         response: Response = self.drf_client.delete('/company/delete_driver/', data)
         self.assertEqual(response.status_code, 200)
 
-        data = {'name': '이승우'}
+        data = {'name': '이승우', 'courseNumber': 1}
         response: Response = self.drf_client.post('/company/create_driver/', data)
         self.assertEqual(response.status_code, 200)
 

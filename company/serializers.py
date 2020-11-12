@@ -20,6 +20,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class DriverSerializer(serializers.ModelSerializer):
+    company = CompanySerializer(read_only=True)
 
     class Meta:
         model = Driver
