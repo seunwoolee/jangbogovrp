@@ -2,7 +2,7 @@ import requests
 from django.contrib.auth.models import User
 from django.db.models import Q, Max, QuerySet
 from django.shortcuts import render
-from datetime import datetime
+from datetime import datetime, date
 # Create your views here.
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
@@ -212,3 +212,21 @@ def add_driver_to_routeD(request: Request) -> Response:
     route_d.driver = driver
     route_d.save()
     return Response(status=200)
+
+
+@api_view(['GET'])
+def android_routeD(request: Request) -> Response:
+    user: User = request.user
+    driver: Driver = user.driver.first()
+    today: str = date.today().strftime('%Y-%m-%d')
+
+    route_d = RouteD.objects.filter(Q(driver=driver), Q(route_m__date=today)).first()
+
+    if not route_d:
+        return Response(data=[], status=200)
+
+    route_ds = RouteD.objects.filter(
+        Q(route_m__date=today), Q(route_number=route_d.route_number)).order_by('route_index')
+
+    serializer = RouteDOrderSerializer(route_ds, many=True)
+    return Response(data=serializer.data, status=200)
