@@ -125,9 +125,8 @@ def save_mutual_distance(request: Request) -> Response:
 @api_view(['GET'])
 def get_orders(request: Request) -> Response:
     order_ids: list = request.query_params.getlist('order_ids[]', [])
-    date: str = request.query_params.get('date', '')
     erp_db = ERPDB()
-    result = erp_db.get_detail_orders("', '".join(order_ids), date)
+    result = erp_db.get_detail_orders("', '".join(order_ids))
     return Response(data=result, status=200)
 
 

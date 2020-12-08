@@ -9,7 +9,8 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from company.models import Company, Driver
-from customer.models import Customer
+from customer.models import Customer, Order
+from customer.serializers import AndroidOrderSerializer
 from delivery.models import RouteM, RouteD
 from delivery.serializers import RouteMSerializer, RouteMDSerializer, RouteDSerializer, RouteDOrderSerializer
 from mssql_service import ERPDB
@@ -216,6 +217,9 @@ def add_driver_to_routeD(request: Request) -> Response:
 
 @api_view(['GET'])
 def android_routeD(request: Request) -> Response:
+    is_am: bool = request.query_params.get('isAm', True)
+    is_am = True if is_am == 'true' else False
+
     user: User = request.user
     driver: Driver = user.driver.first()
     today: str = date.today().strftime('%Y-%m-%d')
@@ -225,8 +229,9 @@ def android_routeD(request: Request) -> Response:
     if not route_d:
         return Response(data=[], status=200)
 
-    route_ds = RouteD.objects.filter(
-        Q(route_m__date=today), Q(route_number=route_d.route_number)).order_by('route_index')
+    orders = Order.objects.filter(
+        Q(route__route_m__date=today), Q(route__route_number=route_d.route_number), Q(route__route_m__is_am=is_am)
+    ).order_by('route__route_index')
 
-    serializer = RouteDOrderSerializer(route_ds, many=True)
+    serializer = AndroidOrderSerializer(orders, many=True)
     return Response(data=serializer.data, status=200)

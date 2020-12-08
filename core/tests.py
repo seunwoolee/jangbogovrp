@@ -20,9 +20,3 @@ class CoreTest(TestCase):
 
         self.drf_client = APIClient()
         self.drf_client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
-
-    def test_create_route_view(self):
-        data = {'isAm': True}
-        response: Response = self.drf_client.get('/core/create_route/')
-        self.assertIsInstance(response.data, list)
-        self.assertEqual(response.status_code, 200)

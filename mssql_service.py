@@ -104,7 +104,7 @@ class ERPDB(MssqlMixin):
         self.cursor.execute(sql)
         self.conn.commit()
 
-    def get_detail_orders(self, orderNumbers: str, date_str: str) -> list:
+    def get_detail_orders(self, orderNumbers: str) -> list:
         sql = f"select table_ordersheet.SaCode as orderNumber, " \
               f"table_ordersheet.JoinUserName as name, " \
               f"table_ordersheet.DevDDay as day, " \
@@ -114,7 +114,7 @@ class ERPDB(MssqlMixin):
               f"from table_ordersheet " \
               f"LEFT OUTER JOIN table_OrderSheet_Product tOSP " \
               f"on table_OrderSheet.CorpCode = tOSP.CorpCode and table_OrderSheet.SaCode = tOSP.SaCode " \
-              f"where table_ordersheet.DevDDay = '{date_str}' and table_OrderSheet.SaCode in ('{orderNumbers}') " \
+              f"where table_OrderSheet.SaCode in ('{orderNumbers}') " \
               f"order by DateKey desc "
         self.cursor.execute(sql)
         return self.cursor.fetchall()

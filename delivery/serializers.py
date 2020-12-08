@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.fields import CharField, IntegerField, BooleanField
 
 from company.serializers import DriverSerializer
 from customer.serializers import CustomerSerializer, OrderSerializer
@@ -6,7 +7,6 @@ from delivery.models import RouteD, RouteM
 
 
 class RouteDSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = RouteD
         fields = '__all__'
@@ -31,7 +31,6 @@ class RouteMDSerializer(serializers.ModelSerializer):
 
 
 class RouteMSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = RouteM
         fields = '__all__'
