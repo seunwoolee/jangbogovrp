@@ -79,3 +79,15 @@ def get_drivers(request: Request) -> Response:
     drivers = Driver.objects.all()
     serializer = DriverSerializer(drivers, many=True)
     return Response(data=serializer.data, status=200)
+
+
+@api_view(['POST'])
+def create_push_key(request: Request) -> Response:
+    push_key = request.data.get('pushKey', "")
+    user: User = request.user
+    driver: Driver = user.driver.first()
+    assert driver is not None, "driver does not exists"
+
+    driver.push_key = push_key
+    driver.save()
+    return Response(status=200)

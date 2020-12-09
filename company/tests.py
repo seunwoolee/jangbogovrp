@@ -3,7 +3,7 @@ from django.test import TestCase
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from company.models import Driver
+from company.models import Driver, Company
 
 
 class CompanyTest(TestCase):
