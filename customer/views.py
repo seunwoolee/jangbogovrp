@@ -28,6 +28,8 @@ def preview_order(request: Request) -> Response:
 
 @api_view(['PATCH'])
 def update_course_number(request: Request) -> Response:
+    user: User = request.user
+    company: Company = user.company_info.first()
     guest_id = request.data.get('guest_id', '')
     to_course_number = request.data.get('to_course_number', '')
     erp_db = ERPDB()
@@ -37,11 +39,13 @@ def update_course_number(request: Request) -> Response:
 
 @api_view(['POST'])
 def save_geolocation(request: Request) -> Response:
+    user: User = request.user
+    company: Company = user.company_info.first()
     order_number = request.data.get('orderNumber', '')
     lat = request.data.get('lat', '')
     lon = request.data.get('lon', '')
     erp_db = ERPDB()
-    erp_db.update_geolocation(order_number, lat, lon)
+    erp_db.update_geolocation(order_number, lat, lon, company.code)
     return Response(data=[], status=200)
 
 

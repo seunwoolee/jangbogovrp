@@ -38,11 +38,6 @@ class ERPDB(MssqlMixin):
         self.cursor.callproc('Iregen_OrderSheet_Ready_List_Vehicle',
                              (CRUN, CorpCode, StartDDay, EndDDay, pStCode, StCode, IsMorning))
 
-        # for _ in self.cursor:  # 첫번째 프로시저 결과값 PASS
-        #     pass
-        #
-        # self.cursor.nextset()
-
         for i, row in enumerate(self.cursor):
             temp_dict = {}
             temp_dict['id'] = i + 1
@@ -94,9 +89,12 @@ class ERPDB(MssqlMixin):
 
         return geolocations
 
-    def update_geolocation(self, order_number: str, lat: str, lon: str):
+    def update_geolocation(self, order_number: str, lat: str, lon: str, company_code: str):
         sql = f"UPDATE table_OrderSheet SET DevX='{lon}', DevY='{lat}' WHERE SaCode='{order_number}'"
         self.cursor.execute(sql)
+        if company_code == '011':  # TODO 하드코딩
+            sql = f"UPDATE table_Delivery_Master SET DevX='{lon}', DevY='{lat}' WHERE SmCode='{order_number}'"
+            self.cursor.execute(sql)
         self.conn.commit()
 
     def update_customer_course_number(self, guest_id: str, to_course_number: int):
