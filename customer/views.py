@@ -72,8 +72,8 @@ def create_customers(request: Request) -> Response:
 
     for order in orders:
 
-        if order['pay'] < 0:
-            order['pay'] = abs(order['pay'])
+        # if order['pay'] < 0:
+        #     order['pay'] = abs(order['pay'])
 
         customer = Customer.objects.filter(
             Q(customer_id=order['guestId']),
